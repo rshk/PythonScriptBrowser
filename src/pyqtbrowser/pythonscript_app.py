@@ -5,14 +5,13 @@
 """
 
 import sys, os
-import webbrowser
 import code
-
 from textwrap import dedent
 import urlparse
 import random
 
 import demjson
+
 from PyQt4 import QtCore, QtGui, QtWebKit
 
 
@@ -68,12 +67,14 @@ class BrowserApp(QtGui.QMainWindow):
         self.ui.webView.titleChanged.connect(self.titleChanged)
 
         # set the default
-        url = 'file://%s' % os.path.abspath(os.path.join(os.path.dirname(__file__), 'pages', 'my-pythonscript-page.html'))
-        self.ui.webView.setUrl(QtCore.QUrl(url))
+        #url = 'file://%s' % os.path.abspath(os.path.join(os.path.dirname(__file__), 'pages', 'my-pythonscript-page.html'))
+        #self.ui.webView.setUrl(QtCore.QUrl(url))
 
         QtCore.QMetaObject.connectSlotsByName(self)
 
 
+    def loadApplication(self, url):
+        self.ui.webView.setUrl(QtCore.QUrl(url))
 
 
     def loadFinished(self, status=None):
@@ -159,26 +160,32 @@ class BrowserApp(QtGui.QMainWindow):
             '__name__': '__pythonscript__',
             '__doc__': None,
             '__file__': __file__, ##TODO: Set path to the script/page as __file__
+
+            ## Expose DOM objects in a more convenient way
             'document': document,
             'window': self,
             'frame': main_frame,
+
+            ## Add utility functions
             'alert': alert,
+        }
 
-            }
+        ## Replace builtins with our customized module
+        from custom_builtins import create_builtins
+        context['__builtins__'] = create_builtins()
 
-        ## Replace builtins
-        import imp, custom_builtins
-        context['__builtins__'] = custom_builtins
-
+        ## Run script using a custom context
         self.script_interpreter = code.InteractiveInterpreter(context)
-
         self.runPythonScript(scripts_text)
 
+
     def titleChanged(self, title):
+        """Handler for "title changed" events"""
         if title:
             self.setWindowTitle("%s - %s" % (title, self.browser_title))
         else:
             self.setWindowTitle(self.browser_title)
+
 
     def attachEventHandler(self, selector, event_type, callback=None):
         """Registers ``callback`` as DOM event handler for events of type
@@ -263,6 +270,11 @@ def handleEvent(event):
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     myapp = BrowserApp()
+
+    url = 'file://%s' % os.path.abspath(os.path.join(os.path.dirname(__file__), 'pages', 'my-pythonscript-page.html'))
+    myapp.loadApplication(url)
+
     myapp.domEvent.connect(handleEvent)
+
     myapp.show()
     sys.exit(app.exec_())
