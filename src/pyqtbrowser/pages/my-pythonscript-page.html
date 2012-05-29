@@ -214,7 +214,6 @@ def refresh_mail_list():
 		emails_html += """
 		<tr><td>%(id)s</td><td>%(date)s</td><td>%(email)s</td><td><a href="action://email-open/?mailid=%(id)s">%(subject)s</a></td></tr>
 		""" % mail
-
 	document.findFirst('#table-messages > tbody').setInnerXml("".join(emails_html));
 
 def new_email():
@@ -245,15 +244,6 @@ window.onAction('email-new', new_email)
 window.onAction('email-open', open_email)
 window.onAction('hide-message-overlay', hide_message_overlay)
 
-## Example importing a "permissions required" module
-#try:
-#	import string
-#except PermissionDenied:
-#	print "Permission was denied :("
-#else:
-#	print "Yay! We can use strings now! :)"
-
-#myfunction()
 </script>
 
 </body></html>
