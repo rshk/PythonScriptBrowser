@@ -66,10 +66,6 @@ class BrowserApp(QtGui.QMainWindow):
         self.ui.webView.loadFinished.connect(self.loadFinished)
         self.ui.webView.titleChanged.connect(self.titleChanged)
 
-        # set the default
-        #url = 'file://%s' % os.path.abspath(os.path.join(os.path.dirname(__file__), 'pages', 'my-pythonscript-page.html'))
-        #self.ui.webView.setUrl(QtCore.QUrl(url))
-
         QtCore.QMetaObject.connectSlotsByName(self)
 
 
@@ -227,14 +223,17 @@ class BrowserApp(QtGui.QMainWindow):
         Processes events, actions or standard links.
         """
         url_str = str(url.toString())
-        #print "LINK CLICKED: %s" % url_str
+
         if url_str.startswith("event://"):
+            ## This is an event. Emit a domEvent() signal and execute
+            ## event handlers (if any)
             q = urlparse.parse_qs(url_str.split('?',1)[1])
             event = demjson.decode(urlparse.unquote(q['event'][0]))
             tag = q.get('tag')[0]
             self.domEvent.emit(event)
             if tag and self.event_handlers.has_key(tag) and callable(self.event_handlers[tag]):
                 self.event_handlers[tag](event)
+
         elif url_str.startswith("action://"):
             ## Actions are in the format:
             ## action://<action-type>/<arg0>/<arg1>/../<argN>?<kw0>=<val0>&<kw1>=<val1>...&<kwN>=<valN>
