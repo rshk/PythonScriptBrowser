@@ -1,4 +1,8 @@
+## Backup files
 *~
+*.orig
+
+## Python compiled module
 *.pyc
 
 ## PyCharm stuff
