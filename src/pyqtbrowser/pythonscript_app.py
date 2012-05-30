@@ -73,6 +73,15 @@ class BrowserApp(QtGui.QMainWindow):
         self.ui.webView.setUrl(QtCore.QUrl(url))
 
 
+    def getFile(self, url):
+        parsed = urlparse.urlparse(url)
+        if parsed.scheme == 'file':
+            return open(parsed.path, 'r')
+        raise ValueError("Unsupported scheme: %s" % parsed.scheme)
+
+    def getCurrentUrl(self):
+        return str(self.ui.webView.url().toString())
+
     def loadFinished(self, status=None):
         """Callback for ``QWebVeiw.loadFinished()`` signal
         Prepares the page and executes all the Python scripts.
@@ -83,10 +92,20 @@ class BrowserApp(QtGui.QMainWindow):
         document = main_frame.documentElement()
         scripts = document.findAll('script')
         scripts_text = []
+
+        pythonscript_mimetypes = ['text/python', 'application/python', 'application/x-python']
+
         for script in scripts.toList():
             ## TODO: Load external scripts too
-            if script.attribute('type') == 'text/python':
-                scripts_text.append(dedent(str(script.toPlainText())))
+            if script.attribute('type') in pythonscript_mimetypes:
+                script_src = script.attribute('src')
+                if script_src:
+                    print "We have to load %s" % script_src
+                    script_url = urlparse.urljoin(self.getCurrentUrl(), str(script_src))
+                    script_text = self.getFile(script_url).read()
+                    scripts_text.append(script_text)
+                else:
+                    scripts_text.append(dedent(str(script.toPlainText())))
 
         def alert(text):
             print "@@ALERT@@: %s" % text
@@ -270,7 +289,7 @@ if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     myapp = BrowserApp()
 
-    url = 'file://%s' % os.path.abspath(os.path.join(os.path.dirname(__file__), 'pages', 'my-pythonscript-page.html'))
+    url = 'file://%s' % os.path.abspath(os.path.join(os.path.dirname(__file__), 'pages', 'index.html'))
     myapp.loadApplication(url)
 
     myapp.domEvent.connect(handleEvent)
