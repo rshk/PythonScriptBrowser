@@ -14,32 +14,32 @@ some utility functions, a custom ``__import__``, etc.).
 
 The whole thing is very much hackerish in many ways, eg:
 
- * We are using a custom ``__builtin__`` module that overrides
-   ``__import__`` in order to allow (in future) importing modules
-   from http; but using custom ``__builtins__`` makes Python run in
-   "restricted mode", disallowing some actions such as creating
-   ``file`` objects; in order to prevent these limitations, we are
-   using a custom ``open()`` too..
- * There's no straight-forward way in ``QtWebKit`` to catch DOM events;
-   instead, we are using some javascript that simulates a click on an
-   ``event://`` link, containing event information in the URL; this way we
-   can catch it (a signal is emitted when links are clicked) and
-   call the appropriate handler.
- * Simple redirections are **not** catchable by ``QtWebKit``, so, instead
-   of using something like ``location.href = "..."`` for the above, we
-   have to create a DOM ``a`` element and simulate a ``mouseclick`` event
-   on it..
- * Along with ``event://``, there's a similar way to implement (quicker)
-   ``action://``, using something like::
+* We are using a custom ``__builtin__`` module that overrides
+  ``__import__`` in order to allow (in future) importing modules
+  from http; but using custom ``__builtins__`` makes Python run in
+  "restricted mode", disallowing some actions such as creating
+  ``file`` objects; in order to prevent these limitations, we are
+  using a custom ``open()`` too..
+* There's no straight-forward way in ``QtWebKit`` to catch DOM events;
+  instead, we are using some javascript that simulates a click on an
+  ``event://`` link, containing event information in the URL; this way we
+  can catch it (a signal is emitted when links are clicked) and
+  call the appropriate handler.
+* Simple redirections are **not** catchable by ``QtWebKit``, so, instead
+  of using something like ``location.href = "..."`` for the above, we
+  have to create a DOM ``a`` element and simulate a ``mouseclick`` event
+  on it..
+* Along with ``event://``, there's a similar way to implement (quicker)
+  ``action://``, using something like::
 
-        window.onAction('my-action', my_action_handler)
-        def my_action_handler():
-            ## Do something
-            pass
+      window.onAction('my-action', my_action_handler)
+      def my_action_handler():
+          ## Do something
+          pass
 
-   And in the HTML::
+  And in the HTML::
 
-        <a href="action://my-action">My Action</a>
+      <a href="action://my-action">My Action</a>
 
 
 .. warning::
